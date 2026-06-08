@@ -7,12 +7,9 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-
-      # Define the nix-review binary
-      nix-review = pkgs.writeShellApplication {
-        name = "nix-review";
-        runtimeInputs = [ pkgs.bash ];
-        text = ''
+    in
+    {
+      packages.default = pkgs.writeShellScript "nix-review" ''
         #!/usr/bin/env bash
         # NixOS Code Reviewer
         set -euo pipefail
@@ -113,10 +110,8 @@
                 exit 1
                 ;;
         esac
-        ''';
-      };
+      '';
 
-      # Define dev shell
       devShell = pkgs.mkShell {
         name = "nixos-code-reviewer-dev";
         buildInputs = [
@@ -135,20 +130,5 @@
           echo "     ./bin/nix-review lint <directory>"
         '';
       };
-
-      # Define NixOS configuration (optional, only if vm-setup.nix exists)
-      nixosConfigurations ? {} or ''
-      nixosConfigurations.default = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./vm-setup.nix
-        ];
-      };
-      '' or {}
-    in
-    {
-      packages.default = nix-review;
-      devShells.default = devShell;
-      nixosConfigurations = nixosConfigurations;
     };
 }
