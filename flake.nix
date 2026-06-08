@@ -1,8 +1,8 @@
 {
   description = "NixOS Code Reviewer - AI-powered code review tool for Nix expressions";
-  
+
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  
+
   outputs = { self, nixpkgs, ... }:
     let
       system = "x86_64-linux";
@@ -17,7 +17,7 @@
         mkdir -p $out/bin
         touch $out/bin/nix-review
         chmod +x $out/bin/nix-review
-        
+
         cat > $out/bin/nix-review << 'EOF'
 #!/usr/bin/env bash
 # NixOS Code Reviewer
@@ -45,37 +45,37 @@ analyze() {
         echo "Error: File not found: $file" >&2
         exit 1
     fi
-    
+
     echo "Analyzing: $file"
     echo ""
-    
+
     content="$(cat "$file")"
-    
+
     # Check for hardcoded secrets
     if echo "$content" | grep -qE '(password|secret|token|apikey)'; then
         echo "⚠️  SECURITY: Potential hardcoded secrets detected"
     fi
-    
+
     # Check for PermitEmptyPasswords = true
     if echo "$content" | grep -qE 'PermitEmptyPasswords'; then
         echo "⚠️  SECURITY: PermitEmptyPasswords = true detected"
     fi
-    
+
     # Check for passwordHash = null
     if echo "$content" | grep -qE 'passwordHash'; then
         echo "⚠️  SECURITY: passwordHash = null detected"
     fi
-    
+
     # Check for overly permissive firewall
     if echo "$content" | grep -qE 'allowedTCPSockets'; then
         echo "⚠️  SECURITY: Overly permissive firewall rules"
     fi
-    
+
     # Check for unpinned packages
     if echo "$content" | grep -qE '^[[:space:]]*[a-zA-Z]'; then
         echo "⚠️  STYLE: Consider pinning package versions"
     fi
-    
+
     echo ""
     echo "📝 Recommendations:"
     echo "  - Use envsubst for secrets"
@@ -123,7 +123,7 @@ EOF
 
         chmod +x $out/bin/nix-review
       '';
-      
+
       devShell = pkgs.mkShell {
         name = "nixos-code-reviewer-dev";
         buildInputs = [
@@ -135,14 +135,14 @@ EOF
           pkgs.curl
           pkgs.git
         ];
-        
+
         shellHook = ''
           echo "🔧 NixOS Code Reviewer Development Shell"
           echo "Run: ./bin/nix-review analyze <file>"
           echo "     ./bin/nix-review lint <directory>"
         '';
       };
-      
+
       nixosConfigurations.default = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
