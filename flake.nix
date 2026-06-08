@@ -9,9 +9,15 @@
       pkgs = nixpkgs.legacyPackages.${system};
     in
     {
-      packages.default = pkgs.runCommand "nixos-code-reviewer" {} ''
+      packages.default = pkgs.runCommand "nixos-code-reviewer" {
+        buildInputs = [
+          pkgs.bash
+        ];
+      } ''
+        mkdir -p $out/bin
         touch $out/bin/nix-review
         chmod +x $out/bin/nix-review
+        
         cat > $out/bin/nix-review << 'EOF'
 #!/usr/bin/env bash
 # NixOS Code Reviewer
@@ -66,7 +72,7 @@ analyze() {
     fi
     
     # Check for unpinned packages
-    if echo "$content" | grep -qE '^[[:space:]]*[a-zA-Z][\w.-]+'; then
+    if echo "$content" | grep -qE '^[[:space:]]*[a-zA-Z]'; then
         echo "⚠️  STYLE: Consider pinning package versions"
     fi
     
@@ -114,7 +120,9 @@ case "${1:-analyze}" in
         ;;
 esac
 EOF
-        '';
+
+        chmod +x $out/bin/nix-review
+      '';
       
       devShell = pkgs.mkShell {
         name = "nixos-code-reviewer-dev";
@@ -133,6 +141,13 @@ EOF
           echo "Run: ./bin/nix-review analyze <file>"
           echo "     ./bin/nix-review lint <directory>"
         '';
+      };
+      
+      nixosConfigurations.default = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./vm-setup.nix
+        ];
       };
     };
 }
