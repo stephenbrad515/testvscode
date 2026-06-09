@@ -27,5 +27,23 @@
           pkgs.git
         ];
       };
+
+      # Commented out - remove hostname configuration if needed
+      # nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
+      #   system = "x86_64-linux";
+      #   modules = [
+      #     {
+      #       hostname = "vm";
+      #       networking.hostName = "vm";
+      #       users.users.robert = {
+      #         isNormalUser = true;
+      #         username = "robert";
+      #         isLocked = false;
+      #         shell = pkgs.zsh;
+      #         extraGroups = [ "wheel" ];
+      #       };
+      #     }
+      #   ];
+      # };
     };
 }
